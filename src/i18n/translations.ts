@@ -31,6 +31,16 @@ export const TRANSLATIONS = {
     'control.stepRefract2': '3. Khúc xạ ra ngoài không khí (lệch xa pháp tuyến)',
     'control.stepScreen': '4. Tia ló truyền tới màn quan sát',
 
+    // Canvas zoom & pan
+    'canvas.zoomIn': 'Phóng to (+)',
+    'canvas.zoomOut': 'Thu nhỏ (-)',
+    'canvas.zoomReset': 'Đặt lại khung nhìn (100%)',
+    'canvas.expandView': 'Mở rộng không gian',
+    'canvas.collapseView': 'Thu gọn khung nhìn',
+    'canvas.panHint': 'Kéo nền để di chuyển • Cuộn chuột/chụm để thu phóng • Kéo nguồn sáng để đổi góc tới',
+    'canvas.dragModePan': 'Di chuyển',
+    'canvas.dragModeRay': 'Chỉnh góc',
+
     // Light types
     'light.white': 'Ánh sáng trắng',
     'light.monochromatic': 'Ánh sáng đơn sắc',
@@ -131,6 +141,16 @@ export const TRANSLATIONS = {
     'control.stepRefract1': '2. Refracts into prism (bends toward normal)',
     'control.stepRefract2': '3. Refracts into air (bends away from normal)',
     'control.stepScreen': '4. Emergent ray reaches observation screen',
+
+    // Canvas zoom & pan
+    'canvas.zoomIn': 'Zoom in (+)',
+    'canvas.zoomOut': 'Zoom out (-)',
+    'canvas.zoomReset': 'Reset view (100%)',
+    'canvas.expandView': 'Expand workspace',
+    'canvas.collapseView': 'Collapse view',
+    'canvas.panHint': 'Drag background to pan • Scroll/pinch to zoom • Drag source to adjust angle',
+    'canvas.dragModePan': 'Pan',
+    'canvas.dragModeRay': 'Angle',
 
     // Light types
     'light.white': 'White light',

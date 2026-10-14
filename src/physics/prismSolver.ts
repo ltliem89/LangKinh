@@ -25,12 +25,12 @@ export interface PrismConfig {
 }
 
 export const DEFAULT_PRISM_CONFIG: PrismConfig = {
-  apexPoint: { x: 380, y: 130 },
-  sideLength: 260,
+  apexPoint: { x: 440, y: 140 },
+  sideLength: 270,
   apexAngleDeg: 60,
   hitRatioOnFace1: 0.52, // Hit around middle-lower of face 1
   screenWidth: 18,
-  screenX: 740,
+  screenX: 860,
 };
 
 export function degToRad(deg: number): number {
@@ -156,8 +156,8 @@ export function solvePrismRay(
     y: inwardNormal1.y * Math.cos(iRad) - tangentFace1.y * Math.sin(iRad),
   };
 
-  // Light source starting position (ray length backwards ~ 220px)
-  const startRayLength = 230;
+  // Light source starting position (ray length backwards ~ 260px)
+  const startRayLength = 260;
   const start: Point2D = {
     x: face1Midpoint.x - incidentDir.x * startRayLength,
     y: face1Midpoint.y - incidentDir.y * startRayLength,

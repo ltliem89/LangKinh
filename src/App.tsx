@@ -94,7 +94,7 @@ export default function App() {
       />
 
       {/* 2. Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+      <main className="flex-1 max-w-[1440px] w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
         {/* TAB 1: EXPERIMENT VIEW */}
         {activeTab === 'experiment' && (
           <div className="space-y-6">
