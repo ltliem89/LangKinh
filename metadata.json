@@ -1,0 +1,6 @@
+{
+  "name": "Thí nghiệm ảo: Lăng kính | Prism Virtual Lab",
+  "description": "Mô phỏng thí nghiệm khúc xạ và tán sắc ánh sáng qua lăng kính - KHTN 9 Kết nối tri thức với cuộc sống.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
