@@ -15,6 +15,8 @@ export const TRANSLATIONS = {
     
     // Controls
     'control.incidenceAngle': 'Góc tới',
+    'control.apexAngle': 'Góc chiết quang A',
+    'control.apexPresets': 'Góc A mẫu',
     'control.lightMode': 'Loại ánh sáng',
     'control.color': 'Màu ánh sáng',
     'control.presets': 'Góc mẫu',
@@ -37,9 +39,17 @@ export const TRANSLATIONS = {
     'canvas.zoomReset': 'Đặt lại khung nhìn (100%)',
     'canvas.expandView': 'Mở rộng không gian',
     'canvas.collapseView': 'Thu gọn khung nhìn',
-    'canvas.panHint': 'Kéo nền để di chuyển • Cuộn chuột/chụm để thu phóng • Kéo nguồn sáng để đổi góc tới',
+    'canvas.panHint': 'Kéo lăng kính để dời vị trí • Kéo nguồn sáng để chỉnh góc tới • Cuộn chuột để thu phóng • Kéo nền để trượt bàn',
     'canvas.dragModePan': 'Di chuyển',
     'canvas.dragModeRay': 'Chỉnh góc',
+
+    // Position controls
+    'control.systemPosition': 'Vị trí hệ lăng kính & nguồn sáng',
+    'control.posX': 'Tới / Lui (Trục X)',
+    'control.posY': 'Lên / Xuống (Trục Y)',
+    'control.distanceToScreen': 'Khoảng cách tới màn',
+    'control.resetPos': 'Vị trí chuẩn',
+    'accessibility.dragPrism': 'Kéo lăng kính để di chuyển tới lui, lên xuống',
 
     // Light types
     'light.white': 'Ánh sáng trắng',
@@ -126,6 +136,8 @@ export const TRANSLATIONS = {
 
     // Controls
     'control.incidenceAngle': 'Angle of incidence',
+    'control.apexAngle': 'Prism apex angle A',
+    'control.apexPresets': 'Apex presets',
     'control.lightMode': 'Light type',
     'control.color': 'Light color',
     'control.presets': 'Presets',
@@ -148,9 +160,17 @@ export const TRANSLATIONS = {
     'canvas.zoomReset': 'Reset view (100%)',
     'canvas.expandView': 'Expand workspace',
     'canvas.collapseView': 'Collapse view',
-    'canvas.panHint': 'Drag background to pan • Scroll/pinch to zoom • Drag source to adjust angle',
+    'canvas.panHint': 'Drag prism to move system • Drag source to adjust angle • Scroll to zoom • Drag background to pan',
     'canvas.dragModePan': 'Pan',
     'canvas.dragModeRay': 'Angle',
+
+    // Position controls
+    'control.systemPosition': 'Prism & light system position',
+    'control.posX': 'Forward / Back (X axis)',
+    'control.posY': 'Up / Down (Y axis)',
+    'control.distanceToScreen': 'Distance to screen',
+    'control.resetPos': 'Reset position',
+    'accessibility.dragPrism': 'Drag prism to move system back/forth and up/down',
 
     // Light types
     'light.white': 'White light',

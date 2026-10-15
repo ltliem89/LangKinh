@@ -13,12 +13,14 @@ import { PrismCanvas } from './components/PrismCanvas';
 import { TheoryAndHints } from './components/TheoryAndHints';
 import { TRANSLATIONS } from './i18n/translations';
 import { computePrismSimulation } from './physics/prismSolver';
-import { Language, LightMode } from './types';
+import { Language, LightMode, Point2D } from './types';
 
 export default function App() {
   const [lang, setLang] = useState<Language>('vi');
   const [activeTab, setActiveTab] = useState<'experiment' | 'assessment' | 'theory'>('experiment');
   const [incidenceAngle, setIncidenceAngle] = useState<number>(50.0);
+  const [apexAngle, setApexAngle] = useState<number>(60);
+  const [prismPos, setPrismPos] = useState<Point2D>({ x: 440, y: 140 });
   const [lightMode, setLightMode] = useState<LightMode>('white');
   const [selectedColorId, setSelectedColorId] = useState<string>('green');
 
@@ -51,8 +53,8 @@ export default function App() {
 
   // Compute physics result in real time
   const physicsResult = useMemo(() => {
-    return computePrismSimulation(incidenceAngle, lightMode, selectedColorId);
-  }, [incidenceAngle, lightMode, selectedColorId]);
+    return computePrismSimulation(incidenceAngle, lightMode, selectedColorId, apexAngle, prismPos);
+  }, [incidenceAngle, lightMode, selectedColorId, apexAngle, prismPos]);
 
   // Animation cycle for step-through
   useEffect(() => {
@@ -71,6 +73,8 @@ export default function App() {
   // Reset to default settings
   const handleReset = () => {
     setIncidenceAngle(50.0);
+    setApexAngle(60);
+    setPrismPos({ x: 440, y: 140 });
     setLightMode('white');
     setSelectedColorId('green');
     setShowNormals(true);
@@ -131,6 +135,9 @@ export default function App() {
                   physicsResult={physicsResult}
                   incidenceAngle={incidenceAngle}
                   onAngleChange={setIncidenceAngle}
+                  apexAngle={apexAngle}
+                  prismPos={prismPos}
+                  onPrismPosChange={setPrismPos}
                   lightMode={lightMode}
                   showNormals={showNormals}
                   showAngles={showAngles}
@@ -167,6 +174,10 @@ export default function App() {
                 <ControlPanel
                   incidenceAngle={incidenceAngle}
                   onAngleChange={setIncidenceAngle}
+                  apexAngle={apexAngle}
+                  onApexAngleChange={setApexAngle}
+                  prismPos={prismPos}
+                  onPrismPosChange={setPrismPos}
                   lightMode={lightMode}
                   onLightModeChange={setLightMode}
                   selectedColorId={selectedColorId}

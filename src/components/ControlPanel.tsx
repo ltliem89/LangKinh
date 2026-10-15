@@ -5,11 +5,15 @@
 
 import React from 'react';
 import { SPECTRAL_COLORS } from '../physics/prismSolver';
-import { Language, LightMode } from '../types';
+import { Language, LightMode, Point2D } from '../types';
 
 interface ControlPanelProps {
   incidenceAngle: number;
   onAngleChange: (val: number) => void;
+  apexAngle: number;
+  onApexAngleChange: (val: number) => void;
+  prismPos: Point2D;
+  onPrismPosChange: (pos: Point2D) => void;
   lightMode: LightMode;
   onLightModeChange: (mode: LightMode) => void;
   selectedColorId: string;
@@ -35,6 +39,10 @@ interface ControlPanelProps {
 export const ControlPanel: React.FC<ControlPanelProps> = ({
   incidenceAngle,
   onAngleChange,
+  apexAngle,
+  onApexAngleChange,
+  prismPos,
+  onPrismPosChange,
   lightMode,
   onLightModeChange,
   selectedColorId,
@@ -57,6 +65,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   t,
 }) => {
   const anglePresets = [35, 45, 50, 60];
+  const apexPresets = [30, 45, 60, 70];
 
   return (
     <div className="bg-slate-900/90 backdrop-blur-md rounded-2xl border border-slate-800 p-5 shadow-xl space-y-5 text-slate-200">
@@ -109,7 +118,117 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         </div>
       </div>
 
-      {/* 2. Light Mode Selector (White Light vs Monochromatic) */}
+      {/* 2. Prism Apex Angle A Slider */}
+      <div className="pt-2 border-t border-slate-800">
+        <div className="flex items-center justify-between mb-2">
+          <label htmlFor="apex-slider" className="text-sm font-semibold flex items-center gap-2 text-amber-300">
+            <svg className="w-4 h-4 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3L2 21h20L12 3z" />
+            </svg>
+            {t('control.apexAngle')} (A):
+          </label>
+          <div className="flex items-baseline gap-1 bg-slate-800/80 px-3 py-1 rounded-lg border border-slate-700/60 font-mono">
+            <span className="text-lg font-bold text-amber-400">{apexAngle.toFixed(0)}</span>
+            <span className="text-xs text-slate-400">°</span>
+          </div>
+        </div>
+
+        <input
+          id="apex-slider"
+          type="range"
+          min="30"
+          max="75"
+          step="1"
+          value={apexAngle}
+          onChange={(e) => onApexAngleChange(parseFloat(e.target.value))}
+          className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+          aria-label={t('control.apexAngle')}
+        />
+
+        {/* Quick Apex Presets */}
+        <div className="flex items-center gap-2 mt-2.5">
+          <span className="text-xs text-slate-400">{t('control.apexPresets')}:</span>
+          <div className="flex gap-1.5 flex-wrap">
+            {apexPresets.map((val) => (
+              <button
+                key={val}
+                type="button"
+                onClick={() => onApexAngleChange(val)}
+                className={`px-2.5 py-1 text-xs rounded-md font-mono transition-all ${
+                  Math.abs(apexAngle - val) < 0.2
+                    ? 'bg-amber-500 text-slate-950 font-bold shadow-md shadow-amber-500/20'
+                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-750'
+                }`}
+              >
+                {val}° {val === 60 ? (lang === 'vi' ? '(Đều)' : '(Equilateral)') : ''}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Optical System Position (X / Y) */}
+      <div className="pt-2 border-t border-slate-800 space-y-3">
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-semibold flex items-center gap-2 text-indigo-300">
+            <svg className="w-4 h-4 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+            </svg>
+            {t('control.systemPosition')}:
+          </label>
+          <button
+            type="button"
+            onClick={() => onPrismPosChange({ x: 440, y: 140 })}
+            className="text-[11px] px-2 py-0.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors"
+          >
+            {t('control.resetPos')}
+          </button>
+        </div>
+
+        {/* X Axis Slider (Tới / Lui) */}
+        <div>
+          <div className="flex items-center justify-between text-xs mb-1">
+            <span className="text-slate-400">{t('control.posX')}:</span>
+            <span className="font-mono text-indigo-300 font-bold">
+              {t('control.distanceToScreen')}: {860 - prismPos.x} px
+            </span>
+          </div>
+          <input
+            type="range"
+            min="240"
+            max="660"
+            step="5"
+            value={prismPos.x}
+            onChange={(e) => onPrismPosChange({ ...prismPos, x: parseFloat(e.target.value) })}
+            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+            aria-label={t('control.posX')}
+          />
+          <div className="flex justify-between text-[10px] text-slate-500 mt-0.5">
+            <span>{lang === 'vi' ? '← Xa màn (quang phổ rộng)' : '← Far from screen (broad)'}</span>
+            <span>{lang === 'vi' ? 'Gần màn (quang phổ hẹp) →' : 'Near screen (narrow) →'}</span>
+          </div>
+        </div>
+
+        {/* Y Axis Slider (Lên / Xuống) */}
+        <div>
+          <div className="flex items-center justify-between text-xs mb-1">
+            <span className="text-slate-400">{t('control.posY')}:</span>
+            <span className="font-mono text-indigo-300 font-bold">Y = {prismPos.y} px</span>
+          </div>
+          <input
+            type="range"
+            min="60"
+            max="230"
+            step="5"
+            value={prismPos.y}
+            onChange={(e) => onPrismPosChange({ ...prismPos, y: parseFloat(e.target.value) })}
+            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+            aria-label={t('control.posY')}
+          />
+        </div>
+      </div>
+
+      {/* 4. Light Mode Selector (White Light vs Monochromatic) */}
       <div className="pt-2 border-t border-slate-800">
         <label className="text-sm font-semibold text-slate-300 block mb-2">
           {t('control.lightMode')}

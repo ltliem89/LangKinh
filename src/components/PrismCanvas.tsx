@@ -10,12 +10,15 @@ import {
   getPrismVertices,
   radToDeg,
 } from '../physics/prismSolver';
-import { Language, LightMode, PrismPhysicsResult, RayPathSegment } from '../types';
+import { Language, LightMode, Point2D, PrismPhysicsResult, RayPathSegment } from '../types';
 
 interface PrismCanvasProps {
   physicsResult: PrismPhysicsResult;
   incidenceAngle: number;
   onAngleChange: (newAngle: number) => void;
+  apexAngle: number;
+  prismPos: Point2D;
+  onPrismPosChange: (pos: Point2D) => void;
   lightMode: LightMode;
   showNormals: boolean;
   showAngles: boolean;
@@ -31,6 +34,9 @@ export const PrismCanvas: React.FC<PrismCanvasProps> = ({
   physicsResult,
   incidenceAngle,
   onAngleChange,
+  apexAngle,
+  prismPos,
+  onPrismPosChange,
   lightMode,
   showNormals,
   showAngles,
@@ -52,6 +58,7 @@ export const PrismCanvas: React.FC<PrismCanvasProps> = ({
 
   // Dragging states
   const [isDraggingHandle, setIsDraggingHandle] = useState<boolean>(false);
+  const [isDraggingPrism, setIsDraggingPrism] = useState<boolean>(false);
   const [isPanning, setIsPanning] = useState<boolean>(false);
   const panStartRef = useRef<{ clientX: number; clientY: number; panX: number; panY: number }>({
     clientX: 0,
@@ -59,11 +66,24 @@ export const PrismCanvas: React.FC<PrismCanvasProps> = ({
     panX: 0,
     panY: 0,
   });
+  const prismStartRef = useRef<{ clientX: number; clientY: number; posX: number; posY: number }>({
+    clientX: 0,
+    clientY: 0,
+    posX: prismPos.x,
+    posY: prismPos.y,
+  });
 
   // Touch pinch-to-zoom tracking
   const touchDistanceRef = useRef<number | null>(null);
 
-  const config = DEFAULT_PRISM_CONFIG;
+  const config = useMemo(
+    () => ({
+      ...DEFAULT_PRISM_CONFIG,
+      apexAngleDeg: apexAngle,
+      apexPoint: prismPos,
+    }),
+    [apexAngle, prismPos]
+  );
   const { A, B, C, face1Midpoint, face1Normal, face2Normal } = useMemo(
     () => getPrismVertices(config),
     [config]
@@ -151,13 +171,23 @@ export const PrismCanvas: React.FC<PrismCanvasProps> = ({
     });
   };
 
-  // Pointer interactions: Drag Light Source or Pan Viewport
+  // Pointer interactions: Drag Light Source, Drag Prism System, or Pan Viewport
   const handlePointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
     const target = e.target as SVGElement;
 
     if (target.dataset.dragHandle) {
       // User clicked specifically on light source / handle to change angle i
       setIsDraggingHandle(true);
+      (e.target as Element).setPointerCapture(e.pointerId);
+    } else if (target.dataset.dragPrism) {
+      // User clicked on prism to move the optical system (back/forth, up/down)
+      setIsDraggingPrism(true);
+      prismStartRef.current = {
+        clientX: e.clientX,
+        clientY: e.clientY,
+        posX: prismPos.x,
+        posY: prismPos.y,
+      };
       (e.target as Element).setPointerCapture(e.pointerId);
     } else {
       // User clicked canvas background to pan view
@@ -184,13 +214,13 @@ export const PrismCanvas: React.FC<PrismCanvasProps> = ({
 
       // Transform client coordinates through pan and zoom to get scene coordinates
       const scaleX = 960 / rect.width;
-      const scaleY = 560 / rect.height;
+      const scaleY = 620 / rect.height;
       const rawSvgX = clientX * scaleX;
       const rawSvgY = clientY * scaleY;
 
-      // Reverse pan and zoom from center (480, 280)
+      // Reverse pan and zoom from center (480, 300)
       const sceneX = 480 + (rawSvgX - 480 - pan.x) / zoom;
-      const sceneY = 280 + (rawSvgY - 280 - pan.y) / zoom;
+      const sceneY = 300 + (rawSvgY - 300 - pan.y) / zoom;
 
       // Calculate angle of incoming ray from scene point to face1Midpoint
       const dx = face1Midpoint.x - sceneX;
@@ -204,6 +234,21 @@ export const PrismCanvas: React.FC<PrismCanvasProps> = ({
       // Clamp between 25° and 75°
       const clamped = Math.max(25, Math.min(75, Math.round(diffDeg * 2) / 2));
       onAngleChange(clamped);
+    } else if (isDraggingPrism) {
+      const svg = svgRef.current;
+      if (!svg) return;
+      const rect = svg.getBoundingClientRect();
+      const scaleX = 960 / rect.width;
+      const scaleY = 620 / rect.height;
+
+      // Delta in scene coordinates
+      const deltaSceneX = ((e.clientX - prismStartRef.current.clientX) * scaleX) / zoom;
+      const deltaSceneY = ((e.clientY - prismStartRef.current.clientY) * scaleY) / zoom;
+
+      // Clamp position so prism stays on bench and doesn't collide with stationary screen
+      const newX = Math.round(Math.max(220, Math.min(680, prismStartRef.current.posX + deltaSceneX)));
+      const newY = Math.round(Math.max(60, Math.min(230, prismStartRef.current.posY + deltaSceneY)));
+      onPrismPosChange({ x: newX, y: newY });
     } else if (isPanning) {
       const deltaX = e.clientX - panStartRef.current.clientX;
       const deltaY = e.clientY - panStartRef.current.clientY;
@@ -216,6 +261,7 @@ export const PrismCanvas: React.FC<PrismCanvasProps> = ({
 
   const handlePointerUp = () => {
     setIsDraggingHandle(false);
+    setIsDraggingPrism(false);
     setIsPanning(false);
   };
 
@@ -424,14 +470,14 @@ export const PrismCanvas: React.FC<PrismCanvasProps> = ({
       {/* 4. Interactive SVG Simulation Viewport */}
       <svg
         ref={svgRef}
-        viewBox="0 0 960 560"
+        viewBox="0 0 960 620"
         className={`w-full block select-none ${
           isPanning
             ? 'cursor-grabbing'
             : isDraggingHandle
             ? 'cursor-grab'
             : 'cursor-grab'
-        } ${isExpanded ? 'h-full flex-1' : 'h-auto max-h-[600px]'}`}
+        } ${isExpanded ? 'h-full flex-1' : 'h-auto max-h-[640px]'}`}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
@@ -479,41 +525,59 @@ export const PrismCanvas: React.FC<PrismCanvasProps> = ({
         </defs>
 
         {/* Global Dark Background & Grid */}
-        <rect width="960" height="560" fill="#030712" />
-        <rect width="960" height="560" fill="url(#gridPattern)" />
+        <rect width="960" height="620" fill="#030712" />
+        <rect width="960" height="620" fill="url(#gridPattern)" />
 
-        {/* Transformed Scene Group with Pan & Zoom centered at (480, 280) */}
-        <g transform={`translate(${480 + pan.x}, ${280 + pan.y}) scale(${zoom}) translate(-480, -280)`}>
+        {/* Transformed Scene Group with Pan & Zoom centered at (480, 300) */}
+        <g transform={`translate(${480 + pan.x}, ${300 + pan.y}) scale(${zoom}) translate(-480, -300)`}>
           {/* Optical Bench Platform Line */}
-          <line x1="30" y1="500" x2="930" y2="500" stroke="#1e293b" strokeWidth="2.5" strokeDasharray="8 5" />
-          <text x="45" y="522" fill="#475569" fontSize="11" fontFamily="sans-serif" fontWeight="bold">
+          <line x1="25" y1="565" x2="935" y2="565" stroke="#1e293b" strokeWidth="2.5" strokeDasharray="8 5" />
+          <text x="45" y="588" fill="#475569" fontSize="11" fontFamily="sans-serif" fontWeight="bold">
             {lang === 'vi' ? 'Bàn quang học (Optical Bench)' : 'Optical Bench'}
           </text>
 
-          {/* 1. Observation Screen */}
+          {/* 1. Observation Screen (extended downward for wider emergent ray capture) */}
           {showScreen && (
             <g className="transition-opacity duration-300">
-              {/* Screen Stand & Surface */}
+              {/* Screen Surface - extended from y=60 down to y=560 (500px length) */}
               <rect
-                x={config.screenX - 8}
-                y="110"
-                width="16"
-                height="320"
+                x={config.screenX - 9}
+                y="60"
+                width="18"
+                height="500"
                 rx="4"
                 fill="url(#screenGrad)"
                 stroke="#94a3b8"
                 strokeWidth="1.5"
                 className="shadow-lg"
               />
+
+              {/* Graduation / Ruler marks along screen edge for precision observation */}
+              {Array.from({ length: 25 }, (_, i) => 70 + i * 20).map((tickY) => {
+                const isMajor = (tickY - 70) % 60 === 0;
+                return (
+                  <line
+                    key={`tick-${tickY}`}
+                    x1={config.screenX - 9}
+                    y1={tickY}
+                    x2={config.screenX - 9 + (isMajor ? 6 : 3.5)}
+                    y2={tickY}
+                    stroke="#94a3b8"
+                    strokeWidth={isMajor ? 1.2 : 0.75}
+                    opacity="0.65"
+                  />
+                );
+              })}
+
               {/* Screen Stand base */}
               <path
-                d={`M ${config.screenX - 25} 430 L ${config.screenX + 25} 430 L ${config.screenX + 15} 460 L ${config.screenX - 15} 460 Z`}
+                d={`M ${config.screenX - 30} 560 L ${config.screenX + 30} 560 L ${config.screenX + 18} 588 L ${config.screenX - 18} 588 Z`}
                 fill="#334155"
                 stroke="#475569"
               />
               <text
                 x={config.screenX}
-                y="95"
+                y="48"
                 textAnchor="middle"
                 fill="#94a3b8"
                 fontSize="12"
@@ -557,7 +621,7 @@ export const PrismCanvas: React.FC<PrismCanvasProps> = ({
             </g>
           )}
 
-          {/* 2. Prism Geometry */}
+          {/* 2. Prism Geometry (Draggable) */}
           <g>
             <polygon
               points={`${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}`}
@@ -565,16 +629,45 @@ export const PrismCanvas: React.FC<PrismCanvasProps> = ({
               stroke="#38bdf8"
               strokeWidth="2.5"
               strokeLinejoin="round"
-              className="filter drop-shadow-xl"
-            />
+              className="filter drop-shadow-xl cursor-move"
+              data-drag-prism="true"
+            >
+              <title>{t('accessibility.dragPrism')}</title>
+            </polygon>
 
             {/* Prism Face Highlights */}
-            <line x1={A.x} y1={A.y} x2={B.x} y2={B.y} stroke="rgba(255,255,255,0.45)" strokeWidth="1.5" />
-            <line x1={A.x} y1={A.y} x2={C.x} y2={C.y} stroke="rgba(255,255,255,0.45)" strokeWidth="1.5" />
+            <line x1={A.x} y1={A.y} x2={B.x} y2={B.y} stroke="rgba(255,255,255,0.45)" strokeWidth="1.5" data-drag-prism="true" />
+            <line x1={A.x} y1={A.y} x2={C.x} y2={C.y} stroke="rgba(255,255,255,0.45)" strokeWidth="1.5" data-drag-prism="true" />
+
+            {/* Centroid Move Handle for Prism & Light System */}
+            <g
+              transform={`translate(${(A.x + B.x + C.x) / 3}, ${(A.y + B.y + C.y) / 3})`}
+              className="cursor-move group"
+              data-drag-prism="true"
+            >
+              <title>{t('accessibility.dragPrism')}</title>
+              <circle
+                cx="0"
+                cy="0"
+                r="16"
+                fill="rgba(15, 23, 42, 0.75)"
+                stroke="#38bdf8"
+                strokeWidth="1.5"
+                data-drag-prism="true"
+              />
+              <path
+                d="M -7 0 L 7 0 M -7 0 L -4 -3 M -7 0 L -4 3 M 7 0 L 4 -3 M 7 0 L 4 3 M 0 -7 L 0 7 M 0 -7 L -3 -4 M 0 -7 L 3 -4 M 0 7 L -3 4 M 0 7 L 3 4"
+                stroke="#38bdf8"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                data-drag-prism="true"
+              />
+            </g>
 
             {/* Vertex Labels: A (Apex), B, C */}
             <text x={A.x} y={A.y - 14} textAnchor="middle" fill="#38bdf8" fontSize="13" fontWeight="bold">
-              A (60°)
+              A ({apexAngle.toFixed(0)}°)
             </text>
             <text x={B.x - 16} y={B.y + 18} textAnchor="middle" fill="#64748b" fontSize="12" fontWeight="bold">
               B
@@ -583,7 +676,7 @@ export const PrismCanvas: React.FC<PrismCanvasProps> = ({
               C
             </text>
 
-            {/* Prism Base Indicator */}
+            {/* Prism Base Indicator & Distance to screen */}
             <text
               x={(B.x + C.x) / 2}
               y={B.y + 24}
@@ -592,12 +685,12 @@ export const PrismCanvas: React.FC<PrismCanvasProps> = ({
               fontSize="11"
               fontStyle="italic"
             >
-              {t('label.prismBase')} (Đáy)
+              {t('label.prismBase')} (Đáy) • L = {Math.round(config.screenX - A.x)} px
             </text>
 
             {/* Apex angle arc at top */}
             <path
-              d={`M ${A.x - 20 * Math.sin(degToRad(30))} ${A.y + 20 * Math.cos(degToRad(30))} A 20 20 0 0 0 ${A.x + 20 * Math.sin(degToRad(30))} ${A.y + 20 * Math.cos(degToRad(30))}`}
+              d={`M ${A.x - 22 * Math.sin(degToRad(apexAngle / 2))} ${A.y + 22 * Math.cos(degToRad(apexAngle / 2))} A 22 22 0 0 0 ${A.x + 22 * Math.sin(degToRad(apexAngle / 2))} ${A.y + 22 * Math.cos(degToRad(apexAngle / 2))}`}
               fill="none"
               stroke="#38bdf8"
               strokeWidth="1.5"

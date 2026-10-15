@@ -315,8 +315,22 @@ export function computePrismSimulation(
   iDeg: number,
   mode: 'white' | 'monochromatic',
   monochromaticId: string = 'green',
-  config: PrismConfig = DEFAULT_PRISM_CONFIG
+  apexAngleOrConfig: number | PrismConfig = DEFAULT_PRISM_CONFIG,
+  prismPos?: Point2D
 ): PrismPhysicsResult {
+  let config: PrismConfig;
+  if (typeof apexAngleOrConfig === 'number') {
+    config = {
+      ...DEFAULT_PRISM_CONFIG,
+      apexAngleDeg: apexAngleOrConfig,
+      apexPoint: prismPos ? { ...prismPos } : DEFAULT_PRISM_CONFIG.apexPoint,
+    };
+  } else {
+    config = {
+      ...apexAngleOrConfig,
+      apexPoint: prismPos ? { ...prismPos } : apexAngleOrConfig.apexPoint,
+    };
+  }
   const apexDeg = config.apexAngleDeg;
 
   if (mode === 'monochromatic') {

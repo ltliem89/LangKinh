@@ -36,8 +36,8 @@ export const ObservationPanel: React.FC<ObservationPanelProps> = ({
           {t('observation.title')}
         </h3>
 
-        <span className="text-xs font-mono px-2.5 py-1 rounded-md bg-slate-800 text-slate-300 border border-slate-700">
-          A = 60°
+        <span className="text-xs font-mono px-2.5 py-1 rounded-md bg-slate-800 text-amber-300 border border-slate-700 font-bold">
+          A = {physicsResult.apexDeg || 60}°
         </span>
       </div>
 
